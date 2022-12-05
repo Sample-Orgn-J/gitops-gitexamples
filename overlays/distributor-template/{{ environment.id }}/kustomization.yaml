@@ -3,7 +3,7 @@ kind: Kustomization
 
 resources:
   ## Broker Lead
-  - ../../bases/distributor-example
+  - ../../bases/{{ baseName }}
   - onedealer-participation/onedealer-webservice-credentials-ss.yaml
 
   ## oneDealer Admin
@@ -14,22 +14,38 @@ resources:
   - krankikom-participation/krankikom-api-credentials-ss.yaml
 
 vars:
-  
+  {% if not environment.useCase.brokerLeadDomain == "" %}
+  - name: BROKER_LEAD_SUBDOMAIN
+    objref:
+      apiVersion: v1
+      kind: ConfigMap
+      name: retail-config
+    fieldref:
+      fieldpath: data.BROKER_LEAD_TLD
+  {% else %}
   - name: BROKER_LEAD_SUBDOMAIN
     objref:
       group: networking.k8s.io
       apiVersion: v1
       kind: Ingress
       name: broker-lead
-  
-  
+  {% endif %}
+  {% if not environment.useCase.oneDealerAdminDomain == "" %}
+  - name: ONE_DEALER_ADMIN_SUBDOMAIN
+    objref:
+      apiVersion: v1
+      kind: ConfigMap
+      name: retail-config
+    fieldref:
+      fieldpath: data.ONE_DEALER_ADMIN_TLD
+  {% else %}
   - name: ONE_DEALER_ADMIN_SUBDOMAIN
     objref:
       group: networking.k8s.io
       apiVersion: v1
       kind: Ingress
       name: onedealer-admin
-  
+  {% endif %}
 
   - name: QA_USER_AUTH_URL_SUFFIX
     objref:
@@ -46,25 +62,29 @@ configMapGenerator:
   - name: retail-config
     behavior: merge
     literals:
-      - RETAIL_TLD=".prismadev.sda-se.io"
-      
-      - BROKER_LEAD_TLD=".prismadev.sda-se.io"
-      
-      
-      - ONE_DEALER_ADMIN_TLD=".prismadev.sda-se.io"
-      
+      - RETAIL_TLD=".{{ environment.clusterTld }}"
+      {% if environment.useCase.brokerLeadDomain %}
+      - BROKER_LEAD_DOMAIN="{{ environment.useCase.brokerLeadDomain }}"
+      {% else %}
+      - BROKER_LEAD_TLD=".{{ environment.clusterTld }}"
+      {% endif %}
+      {% if environment.useCase.oneDealerAdminDomain %}
+      - ONE_DEALER_ADMIN_DOMAIN="{{ environment.useCase.oneDealerAdminDomain }}"
+      {% else %}
+      - ONE_DEALER_ADMIN_TLD=".{{ environment.clusterTld }}"
+      {% endif %}
       - QA_USER_AUTH_URL_SUFFIX="-dex"
 
   - name: onedealer-participation-service
     behavior: merge
     literals:
-      - ONEDEALER_CLIENT_BASE_URL="https://huk-test.onedealer.com/Installations/HUK/Services/"
+      - ONEDEALER_CLIENT_BASE_URL="{{ environment.useCase.oneDealerApi }}"
       - ONEDEALER_CLIENT_TIMEOUT=120s
 
   - name: krankikom-participation-service
     behavior: merge
     literals:
-      - KRANKIKOM_CLIENT_BASE_URL="https://huk-uat.m2.krankikom.de/api"
+      - KRANKIKOM_CLIENT_BASE_URL="{{ environment.useCase.krankikomApi }}"
 
   - name: onedealer-status-upload
     behavior: merge
@@ -77,17 +97,17 @@ configMapGenerator:
     literals:
       - KAFKA_TOPICS_BUSINESS_TRANSACTION_NAME="business-transaction-event"
 
-  
+  {% if distributor.frontend.trackingEnabled %}
   - name: hukautowelt-retail-tracking-id
     behavior: merge
     literals:
-      - TRACKING_ID="UA-136503658-6"
-  
+      - TRACKING_ID="{{ environment.gaTrackingId }}"
+  {% endif %}
 
   - name: use-case-initializer
     behavior: merge
     literals:
-      - DISTRIBUTOR_ID=pfeffi
+      - DISTRIBUTOR_ID={{ distributor.id }}
 patches:
   - target:
       kind: Ingress
@@ -98,8 +118,8 @@ patches:
       metadata:
         name: broker-lead
         annotations:
-          nginx.ingress.kubernetes.io/auth-url: "https://auth.prismadev.sda-se.io/oauth2/auth"
-          nginx.ingress.kubernetes.io/auth-signin: "https://auth.prismadev.sda-se.io/oauth2/start?rd=https://$host$escaped_request_uri"
+          nginx.ingress.kubernetes.io/auth-url: {{ ( environment.brokerAuthBaseUrl + '/oauth2/auth') | tojson }}
+          nginx.ingress.kubernetes.io/auth-signin: {{ ( environment.brokerAuthBaseUrl + '/oauth2/start?rd=https://$host$escaped_request_uri') | tojson }}
   - target:
       kind: Ingress
       name: broker-lead-qa-auth
@@ -109,9 +129,9 @@ patches:
       metadata:
         name: broker-lead-qa-auth
         annotations:
-          nginx.ingress.kubernetes.io/auth-url: "https://auth.prismadev.sda-se.io/oauth2/auth"
-          nginx.ingress.kubernetes.io/auth-signin: "https://auth.prismadev.sda-se.io/oauth2/start?rd=https://$host$escaped_request_uri"
-  
+          nginx.ingress.kubernetes.io/auth-url: {{ ( environment.qaUserAuthBaseUrl + '/oauth2/auth') | tojson }}
+          nginx.ingress.kubernetes.io/auth-signin: {{ ( environment.qaUserAuthBaseUrl + '/oauth2/start?rd=https://$host$escaped_request_uri') | tojson }}
+  {% if not environment.productionEnvironment %}
   - target:
       group: persistence.sda-se.com
       version: v1beta1
@@ -120,4 +140,4 @@ patches:
       - op: replace
         path: /spec/database/pruneAfterDelete
         value: true
-  
+  {% endif %}
