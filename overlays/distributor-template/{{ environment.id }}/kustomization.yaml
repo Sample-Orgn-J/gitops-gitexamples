@@ -11,7 +11,7 @@ resources:
 
   ## qa auth ingress for broker lead
   - broker-lead/broker-lead-ing-qa-user-auth.yaml
-  - krankikom-participation/krankikom-api-credentials-ss.yaml
+
 
 vars:
   {% if not environment.useCase.brokerLeadDomain == "" %}
@@ -81,10 +81,6 @@ configMapGenerator:
       - ONEDEALER_CLIENT_BASE_URL="{{ environment.useCase.oneDealerApi }}"
       - ONEDEALER_CLIENT_TIMEOUT=120s
 
-  - name: krankikom-participation-service
-    behavior: merge
-    literals:
-      - KRANKIKOM_CLIENT_BASE_URL="{{ environment.useCase.krankikomApi }}"
 
   - name: onedealer-status-upload
     behavior: merge
