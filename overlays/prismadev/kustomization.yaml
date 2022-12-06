@@ -1,123 +1,106 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-
 resources:
-  ## Broker Lead
-  - ../../bases/distributor-example
-  - onedealer-participation/onedealer-webservice-credentials-ss.yaml
-
-  ## oneDealer Admin
-  - onedealer-admin/onedealer-admin-basic-auth-ss.yaml
-
-  ## qa auth ingress for broker lead
-  - broker-lead/broker-lead-ing-qa-user-auth.yaml
-  - krankikom-participation/krankikom-api-credentials-ss.yaml
-
+ - ../../bases/distributor-example
+ - onedealer-participation/onedealer-webservice-credentials-ss.yaml
+ - onedealer-admin/onedealer-admin-basic-auth-ss.yaml
+ - broker-lead/broker-lead-ing-qa-user-auth.yaml
+ - krankikom-participation/krankikom-api-credentials-ss.yaml
+ - ../../bases/gitexp
 vars:
-  
-  - name: BROKER_LEAD_SUBDOMAIN
-    objref:
-      group: networking.k8s.io
-      apiVersion: v1
-      kind: Ingress
-      name: broker-lead
-  
-  
-  - name: ONE_DEALER_ADMIN_SUBDOMAIN
-    objref:
-      group: networking.k8s.io
-      apiVersion: v1
-      kind: Ingress
-      name: onedealer-admin
-  
-
-  - name: QA_USER_AUTH_URL_SUFFIX
-    objref:
-      apiVersion: v1
-      kind: ConfigMap
-      name: retail-config
-    fieldref:
-      fieldpath: data.QA_USER_AUTH_URL_SUFFIX
-
+ -
+  name: BROKER_LEAD_SUBDOMAIN
+  objref:
+    group: networking.k8s.io
+    apiVersion: v1
+    kind: Ingress
+    name: broker-lead
+ -
+  name: ONE_DEALER_ADMIN_SUBDOMAIN
+  objref:
+    group: networking.k8s.io
+    apiVersion: v1
+    kind: Ingress
+    name: onedealer-admin
+ -
+  name: QA_USER_AUTH_URL_SUFFIX
+  objref:
+    apiVersion: v1
+    kind: ConfigMap
+    name: retail-config
+  fieldref:
+    fieldpath: data.QA_USER_AUTH_URL_SUFFIX
 configMapGenerator:
-  # Apply settings related to the distributor test system.
-  # The assumption is that distributors try out features from the aggregators before they bring it
-  # in production.
-  - name: retail-config
-    behavior: merge
-    literals:
-      - RETAIL_TLD=".prismadev.sda-se.io"
-      
-      - BROKER_LEAD_TLD=".prismadev.sda-se.io"
-      
-      
-      - ONE_DEALER_ADMIN_TLD=".prismadev.sda-se.io"
-      
-      - QA_USER_AUTH_URL_SUFFIX="-dex"
-
-  - name: onedealer-participation-service
-    behavior: merge
-    literals:
-      - ONEDEALER_CLIENT_BASE_URL="https://huk-test.onedealer.com/Installations/HUK/Services/"
-      - ONEDEALER_CLIENT_TIMEOUT=120s
-
-  - name: krankikom-participation-service
-    behavior: merge
-    literals:
-      - KRANKIKOM_CLIENT_BASE_URL="https://huk-uat.m2.krankikom.de/api"
-
-  - name: onedealer-status-upload
-    behavior: merge
-    literals:
-      - ENABLE_PUBLISH_ON_UPLOAD=true
-
-
-  - name: onedealer-status-upload-business-transaction-event-topic
-    behavior: merge
-    literals:
-      - KAFKA_TOPICS_BUSINESS_TRANSACTION_NAME="business-transaction-event"
-
-  
-  - name: hukautowelt-retail-tracking-id
-    behavior: merge
-    literals:
-      - TRACKING_ID="UA-136503658-6"
-  
-
-  - name: use-case-initializer
-    behavior: merge
-    literals:
-      - DISTRIBUTOR_ID=pfeffi
+ -
+  name: retail-config
+  behavior: merge
+  literals:
+   - RETAIL_TLD=".prismadev.sda-se.io"
+   - BROKER_LEAD_TLD=".prismadev.sda-se.io"
+   - ONE_DEALER_ADMIN_TLD=".prismadev.sda-se.io"
+   - QA_USER_AUTH_URL_SUFFIX="-dex"
+ -
+  name: onedealer-participation-service
+  behavior: merge
+  literals:
+   - ONEDEALER_CLIENT_BASE_URL="https://huk-test.onedealer.com/Installations/HUK/Services/"
+   - ONEDEALER_CLIENT_TIMEOUT=120s
+ -
+  name: krankikom-participation-service
+  behavior: merge
+  literals:
+   - KRANKIKOM_CLIENT_BASE_URL="https://huk-uat.m2.krankikom.de/api"
+ -
+  name: onedealer-status-upload
+  behavior: merge
+  literals:
+   - ENABLE_PUBLISH_ON_UPLOAD=true
+ -
+  name: onedealer-status-upload-business-transaction-event-topic
+  behavior: merge
+  literals:
+   - KAFKA_TOPICS_BUSINESS_TRANSACTION_NAME="business-transaction-event"
+ -
+  name: hukautowelt-retail-tracking-id
+  behavior: merge
+  literals:
+   - TRACKING_ID="UA-136503658-6"
+ -
+  name: use-case-initializer
+  behavior: merge
+  literals:
+   - DISTRIBUTOR_ID=pfeffi
 patches:
-  - target:
-      kind: Ingress
+ -
+  target:
+    kind: Ingress
+    name: broker-lead
+  patch: |
+    apiVersion: networking.k8s.io/v1
+    kind: Ingress
+    metadata:
       name: broker-lead
-    patch: |
-      apiVersion: networking.k8s.io/v1
-      kind: Ingress
-      metadata:
-        name: broker-lead
-        annotations:
-          nginx.ingress.kubernetes.io/auth-url: "https://auth.prismadev.sda-se.io/oauth2/auth"
-          nginx.ingress.kubernetes.io/auth-signin: "https://auth.prismadev.sda-se.io/oauth2/start?rd=https://$host$escaped_request_uri"
-  - target:
-      kind: Ingress
+      annotations:
+        nginx.ingress.kubernetes.io/auth-url: "https://auth.prismadev.sda-se.io/oauth2/auth"
+        nginx.ingress.kubernetes.io/auth-signin: "https://auth.prismadev.sda-se.io/oauth2/start?rd=https://$host$escaped_request_uri"
+ -
+  target:
+    kind: Ingress
+    name: broker-lead-qa-auth
+  patch: |
+    apiVersion: networking.k8s.io/v1
+    kind: Ingress
+    metadata:
       name: broker-lead-qa-auth
-    patch: |
-      apiVersion: networking.k8s.io/v1
-      kind: Ingress
-      metadata:
-        name: broker-lead-qa-auth
-        annotations:
-          nginx.ingress.kubernetes.io/auth-url: "https://auth.prismadev.sda-se.io/oauth2/auth"
-          nginx.ingress.kubernetes.io/auth-signin: "https://auth.prismadev.sda-se.io/oauth2/start?rd=https://$host$escaped_request_uri"
-  
-  - target:
-      group: persistence.sda-se.com
-      version: v1beta1
-      kind: MongoDb
-    patch: |
-      - op: replace
-        path: /spec/database/pruneAfterDelete
-        value: true
-  
+      annotations:
+        nginx.ingress.kubernetes.io/auth-url: "https://auth.prismadev.sda-se.io/oauth2/auth"
+        nginx.ingress.kubernetes.io/auth-signin: "https://auth.prismadev.sda-se.io/oauth2/start?rd=https://$host$escaped_request_uri"
+ -
+  target:
+    group: persistence.sda-se.com
+    version: v1beta1
+    kind: MongoDb
+  patch: |
+    - op: replace
+      path: /spec/database/pruneAfterDelete
+      value: true
