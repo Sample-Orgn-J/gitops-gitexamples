@@ -1,0 +1,19 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: gitexamples
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: prisma-gitexamples
+    server: https://kubernetes.default.svc
+  project: prisma-platform
+  source:
+    path: overlays/prismadev
+    repoURL: https://github.com/Sample-Orgn-J/gitops-gitexamples.git
+    targetRevision: prismadev
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
