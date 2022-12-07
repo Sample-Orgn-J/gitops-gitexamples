@@ -7,6 +7,7 @@ resources:
  - broker-lead/broker-lead-ing-qa-user-auth.yaml
  - krankikom-participation/krankikom-api-credentials-ss.yaml
  - ../../bases/gitexpex
+ - ../../bases/gitexampler
 vars:
  -
   name: BROKER_LEAD_SUBDOMAIN
