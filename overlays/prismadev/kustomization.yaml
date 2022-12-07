@@ -6,7 +6,6 @@ resources:
  - onedealer-admin/onedealer-admin-basic-auth-ss.yaml
  - broker-lead/broker-lead-ing-qa-user-auth.yaml
  - krankikom-participation/krankikom-api-credentials-ss.yaml
- - ../../bases/gitexpex
 vars:
  -
   name: BROKER_LEAD_SUBDOMAIN
