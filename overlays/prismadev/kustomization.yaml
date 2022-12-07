@@ -8,6 +8,7 @@ resources:
  - krankikom-participation/krankikom-api-credentials-ss.yaml
  - ../../bases/gitexpex
  - ../../bases/gitexampler
+ - ../../bases/gitexamplers
 vars:
  -
   name: BROKER_LEAD_SUBDOMAIN
