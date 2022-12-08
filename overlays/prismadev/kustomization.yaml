@@ -9,7 +9,6 @@ resources:
  - ../../bases/gitexpex
  - ../../bases/gitexampler
  - ../../bases/giter
- - ../../bases/gitexample
 vars:
  -
   name: BROKER_LEAD_SUBDOMAIN
