@@ -1,0 +1,19 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: gitexamplesddsaffs
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: prisma-gitexamplesddsaffs
+    server: https://kubernetes.default.svc
+  project: prisma-platform
+  source:
+    path: overlays/dev
+    repoURL: https://github.com/Sample-Orgn-J/gitops-gitexamplesddsaffs.git
+    targetRevision: dev
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
