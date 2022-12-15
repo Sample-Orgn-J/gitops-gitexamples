@@ -3,4 +3,3 @@ kind: Kustomization
 resources:
  - ../../bases/gitexpex
  - ../../bases/gitexamplesds
- - ../../bases/gitexample
