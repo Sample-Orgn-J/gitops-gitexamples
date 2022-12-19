@@ -4,4 +4,3 @@ resources:
  - ../../bases/gitexamplesds
  - ../../bases/tests
  - ../../bases/expextest
- - ../../bases/expextests
