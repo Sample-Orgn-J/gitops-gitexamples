@@ -1,0 +1,19 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: expextests
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: prisma-expextests
+    server: https://kubernetes.default.svc
+  project: prisma-platform
+  source:
+    path: overlays/dev
+    repoURL: https://github.com/Sample-Orgn-J/gitops-expextests.git
+    targetRevision: dev
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
